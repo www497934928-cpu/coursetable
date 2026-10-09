@@ -1,4 +1,4 @@
-const CACHE = 'coursetable-v4';
+const CACHE = 'coursetable-v6';
 const ASSETS = [
   './',
   './index.html',
