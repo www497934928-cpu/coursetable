@@ -13,7 +13,7 @@
 <title>燕理课表 Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-/* ============ 主题 ============ */
+/* ============ 主题变量 ============ */
 :root, [data-theme="light"]{
   --bg:#f5f7fa;
   --card:#ffffff;
@@ -99,7 +99,6 @@ body{
   overflow:hidden;
 }
 
-/* 表头 */
 .grid-corner, .grid-day{
   background:var(--card-2);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -113,7 +112,6 @@ body{
 .grid-day.today .day-name{color:var(--primary)}
 .grid-day.today .day-date{color:var(--primary);opacity:.75}
 
-/* 节次列：节/开始/结束 三行居中 */
 .grid-period{
   background:var(--card-2);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -129,10 +127,8 @@ body{
   text-align:center;white-space:nowrap;
 }
 
-/* 空格子 */
 .grid-cell{background:var(--card)}
 
-/* 课程覆盖层：跨 2 行，全覆盖 */
 .grid-course-wrap{
   padding:2px;
   display:flex;flex-direction:column;gap:2px;
@@ -140,7 +136,6 @@ body{
 }
 .grid-course-wrap > *{pointer-events:auto}
 
-/* 课程卡片 */
 .course{
   flex:1;min-height:0;
   padding:5px 6px;
@@ -411,7 +406,11 @@ body{
 </div>
 
 <script>
-/* ============ 12 小节 ============ */
+/* ================================================================
+   完整 JavaScript 从这里开始
+   ================================================================ */
+
+/* ============ 12 小节时间表 ============ */
 const SECTIONS = [
   null,
   { num:1,  start:'08:20', end:'09:05' },
@@ -428,6 +427,7 @@ const SECTIONS = [
   { num:12, start:'20:40', end:'21:25' },
 ];
 
+/* 大节时间（.ics 导出用） */
 const PERIOD_TIMES = [
   '',
   { label:'第一大节', clock:['08:20','09:55'] },
@@ -438,6 +438,7 @@ const PERIOD_TIMES = [
   { label:'第六大节', clock:['19:50','21:25'] },
 ];
 
+/* ============ 预置课表 ============ */
 const DEFAULT_COURSES = [
   { day:1, period:1, name:'C语言程序设计', credit:'64', type:'必修', weeks:[7,8,9,10,11,12,13,14,15,16,17,18], room:'C407' },
   { day:1, period:2, name:'大学英语I（专科）', credit:'64', type:'必修', weeks:[11,12,13,14,15], room:'K3-604' },
@@ -483,6 +484,7 @@ const DEFAULT_STATE = {
 };
 
 let state = loadState();
+
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -490,7 +492,9 @@ function loadState(){
   }catch(e){}
   return { ...DEFAULT_STATE };
 }
-function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
 
 /* ============ 主题 ============ */
 function applyTheme(theme){
@@ -514,15 +518,20 @@ document.getElementById('themeToggle').onclick = () => {
   applyTheme(cur === 'dark' ? 'light' : 'dark');
 };
 
-/* ============ 工具 ============ */
+/* ============ 工具函数 ============ */
 function toast(msg){
   const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2200);
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 2200);
 }
 function pad(n){ return String(n).padStart(2,'0'); }
 function fmtDate(d){ return `${d.getMonth()+1}月${d.getDate()}日`; }
-function todayDayIndex(){ const d = new Date().getDay(); return d === 0 ? 7 : d; }
+function todayDayIndex(){
+  const d = new Date().getDay();
+  return d === 0 ? 7 : d;
+}
 
 const hueCache = {};
 function getHue(name){
@@ -682,7 +691,7 @@ function renderGrid(){
   const today = todayDayIndex();
   const [weekStart] = weekDateRange(state.currentWeek);
 
-  /* 角（显式定位） */
+  /* 角 */
   const corner = document.createElement('div');
   corner.className = 'grid-corner';
   corner.textContent = '节次';
@@ -690,7 +699,7 @@ function renderGrid(){
   corner.style.gridRow = 1;
   grid.appendChild(corner);
 
-  /* 星期表头（显式定位，当天显示"今天"） */
+  /* 星期表头，当天显示"今天" */
   for(let d=1; d<=7; d++){
     const div = document.createElement('div');
     const isToday = (d === today);
@@ -704,7 +713,7 @@ function renderGrid(){
     grid.appendChild(div);
   }
 
-  /* 12 行：节次列 + 空格子，全部显式定位 */
+  /* 12 行：节次列 + 空格子，显式定位 */
   for(let i=1; i<=12; i++){
     const pc = document.createElement('div');
     pc.className = 'grid-period';
@@ -889,6 +898,7 @@ function download(filename, content, mime){
 /* ============ 页面内通知 ============ */
 let notifTimer = null;
 const notifiedKeys = new Set();
+
 function startNotifLoop(){
   if(notifTimer) clearInterval(notifTimer);
   notifTimer = setInterval(checkUpcoming, 30000);
@@ -924,6 +934,7 @@ function checkUpcoming(){
 document.querySelectorAll('.tabbar button').forEach(b => {
   b.onclick = () => switchView(b.dataset.view);
 });
+
 document.getElementById('prevWeek').onclick = () => {
   if(state.currentWeek > 1){ state.currentWeek--; refresh(); }
 };
@@ -937,6 +948,7 @@ document.getElementById('todayBtn').onclick = () => {
   state.currentWeek = calcCurrentWeek(); refresh();
   toast('已定位到第 ' + state.currentWeek + ' 周');
 };
+
 document.getElementById('saveSettings').onclick = () => {
   const s = document.getElementById('semStart').value;
   const t = +document.getElementById('totalWeeks').value;
@@ -949,17 +961,20 @@ document.getElementById('saveSettings').onclick = () => {
   refresh();
   toast('设置已保存');
 };
+
 document.getElementById('exportICS').onclick = () => {
   if(!confirm('将导出 .ics 文件，导入手机系统日历后即可准时提醒。继续？')) return;
   download('我的课表.ics', generateICS(), 'text/calendar;charset=utf-8');
   toast('已导出，请到手机日历导入');
 };
+
 document.getElementById('enableNotif').onclick = async () => {
   if(!('Notification' in window)){ toast('此浏览器不支持通知'); return; }
   const p = await Notification.requestPermission();
   if(p === 'granted'){ toast('通知已开启'); startNotifLoop(); }
   else { toast('未授权通知'); }
 };
+
 document.getElementById('importExcelBtn').onclick = () => document.getElementById('fileInput').click();
 document.getElementById('fileInput').onchange = e => {
   const file = e.target.files[0]; if(!file) return;
@@ -980,10 +995,12 @@ document.getElementById('fileInput').onchange = e => {
   reader.readAsArrayBuffer(file);
   e.target.value = '';
 };
+
 document.getElementById('exportJSON').onclick = () => {
   download('课表备份.json', JSON.stringify(state, null, 2), 'application/json');
   toast('备份已导出');
 };
+
 document.getElementById('importJSONBtn').onclick = () => document.getElementById('jsonInput').click();
 document.getElementById('jsonInput').onchange = e => {
   const file = e.target.files[0]; if(!file) return;
@@ -1008,6 +1025,7 @@ function fillSettingsForm(){
   document.getElementById('totalWeeks').value = state.totalWeeks;
   document.getElementById('alarmMin').value = state.alarmMin;
 }
+
 initTheme();
 state.currentWeek = calcCurrentWeek();
 fillSettingsForm();
@@ -1025,6 +1043,10 @@ if('serviceWorker' in navigator && location.protocol !== 'file:'){
 if('Notification' in window && Notification.permission === 'granted'){
   startNotifLoop();
 }
+
+/* ================================================================
+   JavaScript 结束
+   ================================================================ */
 </script>
 </body>
 </html>
