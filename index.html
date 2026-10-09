@@ -13,13 +13,48 @@
 <title>燕理课表 Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-:root{
-  --bg:#eef2f7;--card:#fff;--text:#0f172a;--text-2:#64748b;--text-3:#94a3b8;
-  --border:#e2e8f0;--primary:#4f46e5;
+/* ============ 主题 ============ */
+:root, [data-theme="light"]{
+  --bg:#f5f7fa;
+  --bg-grad:linear-gradient(180deg,#eef2f7 0%,#f5f7fa 220px);
+  --card:#ffffff;
+  --card-2:#f8fafc;
+  --card-3:#f1f5f9;
+  --text:#0f172a;
+  --text-2:#64748b;
+  --text-3:#94a3b8;
+  --border:#e2e8f0;
+  --border-2:#eef2f7;
+  --border-strong:#cbd5e1;
+  --primary:#4f46e5;
+  --primary-soft:#eef2ff;
   --grad:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);
-  --shadow:0 4px 24px rgba(15,23,42,.06);--shadow-lg:0 12px 40px rgba(15,23,42,.10);
-  --r:16px;--r-sm:12px;
+  --shadow:0 4px 24px rgba(15,23,42,.06);
+  --shadow-lg:0 12px 40px rgba(15,23,42,.10);
+  --today-col:rgba(99,102,241,0.06);
+  --tab-bg:rgba(255,255,255,.94);
 }
+[data-theme="dark"]{
+  --bg:#0b1220;
+  --bg-grad:linear-gradient(180deg,#0f172a 0%,#0b1220 220px);
+  --card:#151d2e;
+  --card-2:#1a2438;
+  --card-3:#1e2a40;
+  --text:#f1f5f9;
+  --text-2:#94a3b8;
+  --text-3:#64748b;
+  --border:#263449;
+  --border-2:#1a2438;
+  --border-strong:#334155;
+  --primary:#818cf8;
+  --primary-soft:#1e1b4b;
+  --grad:linear-gradient(135deg,#818cf8 0%,#6366f1 100%);
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.5);
+  --today-col:rgba(129,140,248,0.08);
+  --tab-bg:rgba(21,29,46,.94);
+}
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{overscroll-behavior-y:contain}
 body{
@@ -29,156 +64,205 @@ body{
   padding-top:calc(14px + env(safe-area-inset-top));
   padding-bottom:calc(88px + env(safe-area-inset-bottom));
   -webkit-font-smoothing:antialiased;
+  transition:background .25s,color .25s;
 }
 .app{max-width:1400px;margin:0 auto}
 
+/* ============ 顶部栏 ============ */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
-.logo{width:40px;height:40px;border-radius:11px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;box-shadow:0 8px 20px rgba(79,70,229,.3);flex-shrink:0}
+.logo{width:40px;height:40px;border-radius:11px;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;box-shadow:0 8px 20px rgba(99,102,241,.3);flex-shrink:0}
 .brand>div{min-width:0}
 .brand h1{font-size:18px;font-weight:900;letter-spacing:-.4px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand h1 .pro{font-size:10px;padding:2px 6px;border-radius:999px;background:var(--grad);color:#fff;vertical-align:middle;margin-left:4px;letter-spacing:.5px}
 .brand p{font-size:11.5px;color:var(--text-2);font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+.theme-toggle{
+  width:40px;height:40px;border-radius:11px;
+  border:1px solid var(--border);background:var(--card);
+  color:var(--text);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;
+}
+.theme-toggle:active{transform:scale(.94)}
+.theme-toggle:hover{border-color:var(--primary);color:var(--primary)}
+
 .view{display:none}.view.active{display:block}
 
-.week-bar{background:var(--card);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;box-shadow:var(--shadow)}
-.nav-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:#fff;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0}
-.nav-btn:active{background:#f1f5f9}
+/* ============ 周次栏 ============ */
+.week-bar{background:var(--card);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.nav-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--card);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0}
+.nav-btn:active{background:var(--card-3)}
 .week-info{flex:1;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
-#weekSelect{padding:7px 10px;border-radius:9px;border:1px solid var(--border);font-size:13px;font-weight:800;background:#fff;color:var(--text);outline:none;font-family:inherit}
+#weekSelect{padding:7px 10px;border-radius:9px;border:1px solid var(--border);font-size:13px;font-weight:800;background:var(--card);color:var(--text);outline:none;font-family:inherit}
 #weekSelect:focus{border-color:var(--primary)}
 .week-range{font-size:11.5px;color:var(--text-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.primary-btn{padding:8px 12px;border-radius:9px;border:none;background:var(--grad);color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(79,70,229,.25);white-space:nowrap}
+.primary-btn{padding:8px 12px;border-radius:9px;border:none;background:var(--grad);color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(99,102,241,.25);white-space:nowrap}
 .primary-btn:active{transform:translateY(1px)}
 
-.scroll-hint{display:none;text-align:center;font-size:11px;color:var(--text-3);font-weight:700;padding:6px 0 2px;user-select:none}
-
-.schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);box-shadow:var(--shadow-lg);background:var(--card);border:1px solid rgba(255,255,255,.7)}
+/* ============ 课表网格 ============ */
+.schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px;box-shadow:var(--shadow-lg);background:var(--card);border:1px solid var(--border)}
 .schedule-scroll::-webkit-scrollbar{height:6px}
-.schedule-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
-.grid{display:grid;grid-template-columns:96px repeat(7,minmax(118px,1fr));gap:1px;background:var(--border);min-width:922px}
-.header-cell{background:#f8fafc;padding:13px 6px;text-align:center;font-weight:900;font-size:14.5px;color:var(--text)}
-.header-cell.weekend{color:#e11d48}
-.period-cell{background:#f8fafc;padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-.period-cell b{font-size:13.5px;color:var(--text);font-weight:900}
-.period-cell span{font-size:10px;color:var(--text-2);font-weight:700;line-height:1.5}
-.p-time{display:none}  /* 手机端才显示开始时间 */
-.cell{background:#fff;padding:5px;min-height:118px;display:flex;flex-direction:column;gap:5px}
-.empty{color:#cbd5e1;font-size:12px;font-weight:700;text-align:center;margin-top:44px}
-.course{padding:7px 8px;border-radius:9px;border-left:4px solid;font-size:12px;line-height:1.4;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.course:active{transform:scale(.98)}
-.course-name{font-weight:900;font-size:12.5px;margin-bottom:3px;letter-spacing:-.2px;word-break:break-all}
-.course-room{font-size:11px;font-weight:700;opacity:.85;margin-bottom:1px;word-break:break-all}
-.course-weeks{font-size:10px;font-weight:700;opacity:.65}
+.schedule-scroll::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
 
-.today-title{font-size:12.5px;color:var(--text-2);font-weight:800;margin-bottom:10px;padding-left:2px}
+.grid{
+  display:grid;
+  grid-template-columns:52px repeat(7,minmax(0,1fr));
+  grid-template-rows:42px repeat(12,minmax(30px,1fr));
+  background:var(--card);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+/* 表头 */
+.grid-corner{
+  grid-column:1;grid-row:1;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;color:var(--text-3);
+  background:var(--card-2);
+  border-bottom:2px solid var(--border);
+  border-right:1px solid var(--border);
+}
+.grid-day{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:4px 0;gap:2px;
+  background:var(--card-2);
+  border-bottom:2px solid var(--border);
+  border-right:1px solid var(--border);
+  transition:background .2s;
+}
+.grid-day:last-child{border-right:0}
+.grid-day .day-name{font-size:12px;font-weight:900;color:var(--text);letter-spacing:-.2px}
+.grid-day .day-date{font-size:9.5px;font-weight:800;color:var(--text-3);letter-spacing:0}
+.grid-day.weekend .day-name{color:#e11d48}
+.grid-day.today{background:var(--primary-soft)}
+.grid-day.today .day-name{color:var(--primary)}
+.grid-day.today .day-date{color:var(--primary);opacity:.75}
+
+/* 节次列 */
+.grid-period{
+  grid-column:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2px 0;gap:1px;
+  background:var(--card-2);
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border-2);
+}
+.grid-period.major-end{border-bottom:1px solid var(--border-strong)}
+.grid-period .p-num{font-size:12px;font-weight:900;color:var(--text);line-height:1}
+.grid-period .p-time{font-size:8.5px;font-weight:700;color:var(--text-3);line-height:1.1;letter-spacing:-.2px}
+
+/* 空格子 */
+.grid-cell{
+  background:var(--card);
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border-2);
+  transition:background .2s;
+}
+.grid-cell:last-child{border-right:0}
+.grid-cell.major-end{border-bottom:1px solid var(--border-strong)}
+.grid-cell.today-col{background:var(--today-col)}
+
+/* 课程容器 */
+.grid-course-wrap{
+  padding:2px;display:flex;flex-direction:column;gap:2px;
+  z-index:2;pointer-events:none;
+}
+.grid-course-wrap > *{pointer-events:auto}
+
+/* 课程卡片 */
+.course{
+  flex:1;min-height:0;
+  padding:5px 6px;
+  border-radius:6px;
+  border:1px solid;
+  border-left-width:3px;
+  font-size:10.5px;
+  line-height:1.2;
+  font-weight:700;
+  overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+}
+.course:active{transform:scale(.97)}
+.course-name{font-weight:900;font-size:11px;margin-bottom:2px;line-height:1.15;word-break:break-word;overflow-wrap:anywhere}
+.course-room{font-size:8.5px;font-weight:700;line-height:1.1;opacity:.82;word-break:break-word;overflow-wrap:anywhere}
+.course-weeks{display:none}
+
+/* ============ 今日视图 ============ */
+.today-title{font-size:13px;color:var(--text-2);font-weight:800;margin-bottom:10px;padding-left:4px}
 .today-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.today-course{display:flex;gap:12px;padding:14px 16px;border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);border-left:5px solid;align-items:center}
+.today-course{display:flex;gap:12px;padding:14px 16px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);border:1px solid var(--border);border-left:5px solid;align-items:center}
 .today-course .time{font-size:11px;color:var(--text-2);font-weight:800;min-width:56px;text-align:center;line-height:1.4}
 .today-course .time b{display:block;font-size:14px;color:var(--text);font-weight:900;margin-bottom:1px}
 .today-course .info{flex:1;min-width:0}
 .today-course .info h4{font-size:15px;font-weight:900;margin-bottom:4px;letter-spacing:-.2px;word-break:break-all}
 .today-course .info p{font-size:11.5px;color:var(--text-2);font-weight:700;word-break:break-all}
-.today-empty{padding:56px 20px;text-align:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow)}
+.today-empty{padding:56px 20px;text-align:center;background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .today-empty .em{font-size:42px;margin-bottom:10px}
 .today-empty p{color:var(--text-2);font-size:14px;font-weight:700}
 
-.settings-card{background:var(--card);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}
+/* ============ 设置 ============ */
+.settings-card{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .settings-card h3{font-size:14.5px;font-weight:900;margin-bottom:6px;color:var(--text);letter-spacing:-.2px}
 .settings-card h3 + .tip{margin-bottom:10px}
 .field-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid var(--border);font-size:13.5px;gap:10px;flex-wrap:wrap}
 .field-row:first-of-type{border-top:0}
 .field-row label{font-weight:800;color:var(--text);flex:1;min-width:100px}
-.field-row input[type=date],.field-row input[type=number],.field-row select{padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);background:#fff;outline:none;font-family:inherit;min-width:0}
+.field-row input[type=date],.field-row input[type=number],.field-row select{padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text);background:var(--card);outline:none;font-family:inherit;min-width:0}
 .field-row input:focus,.field-row select:focus{border-color:var(--primary)}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--grad);color:#fff;border:none;box-shadow:0 6px 16px rgba(79,70,229,.25)}
+.btn.primary{background:var(--grad);color:#fff;border:none;box-shadow:0 6px 16px rgba(99,102,241,.25)}
 .tip{font-size:12px;color:var(--text-3);line-height:1.65;font-weight:700}
-.tip code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:11.5px}
+.tip code{background:var(--card-3);padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:11.5px}
 
-.tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:100;max-width:1400px;margin:0 auto}
+/* ============ 底部导航 ============ */
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--tab-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:100;max-width:1400px;margin:0 auto}
 .tabbar button{flex:1;background:none;border:0;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:800;color:var(--text-3);cursor:pointer;font-family:inherit;transition:color .15s}
 .tabbar button.active{color:var(--primary)}
 .tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:800;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2);max-width:88vw;text-align:center}
+[data-theme="dark"] .toast{background:#334155;color:#f1f5f9}
 .toast.show{opacity:1}
 
-/* ====================== 平板 / 大屏手机 ====================== */
+/* ============ 平板 / 大屏手机 ============ */
 @media (max-width:768px){
   body{padding:10px;padding-top:calc(10px + env(safe-area-inset-top));padding-bottom:calc(84px + env(safe-area-inset-bottom))}
-  .brand h1{font-size:16px}
-  .brand p{font-size:10.5px}
+  .brand h1{font-size:16px}.brand p{font-size:10.5px}
   .logo{width:36px;height:36px;font-size:16px;border-radius:10px}
-
+  .theme-toggle{width:36px;height:36px;font-size:16px;border-radius:10px}
   .week-bar{padding:8px 10px;gap:6px}
   .nav-btn{width:32px;height:32px;font-size:14px}
   #weekSelect{font-size:12.5px;padding:6px 8px}
   .primary-btn{padding:7px 10px;font-size:12px}
   .week-range{display:none}
-
-  .scroll-hint{display:block}
-
-  .grid{grid-template-columns:64px repeat(7,minmax(84px,1fr));min-width:672px}
-  .header-cell{font-size:12px;padding:9px 3px}
-  .period-cell{padding:8px 3px;gap:3px}
-  .period-cell b{font-size:11px}
-  .period-cell span{font-size:9px;line-height:1.3}
-  .cell{min-height:86px;padding:3px;gap:3px}
-  .course{padding:5px 5px;border-radius:6px;border-left-width:3px;font-size:10.5px}
-  .course-name{font-size:10.5px;margin-bottom:2px}
-  .course-room{font-size:9px}
-  .course-weeks{font-size:8.5px}
-  .empty{font-size:10px;margin-top:32px}
-
+  .grid{grid-template-columns:48px repeat(7,minmax(0,1fr));grid-template-rows:40px repeat(12,minmax(28px,1fr))}
   .today-course{padding:12px 14px;gap:10px}
   .today-course .time{min-width:50px}
   .today-course .time b{font-size:13px}
   .today-course .info h4{font-size:14px}
-
   .field-row{flex-direction:column;align-items:flex-start;gap:6px}
   .field-row input,.field-row select{width:100%}
   .btn-row .btn{flex:1;min-width:120px}
 }
 
-/* ============ iQOO 12 / 窄屏手机：7 天全显示 + 节次显示时间 ============ */
+/* ============ iQOO 12 / 窄屏手机 ============ */
 @media (max-width:480px){
-  .schedule-scroll{overflow-x:hidden}
   .grid{
     grid-template-columns:44px repeat(7,minmax(0,1fr));
-    min-width:0;
-    width:100%;
+    grid-template-rows:38px repeat(12,minmax(26px,1fr));
   }
-
-  /* 表头 */
-  .header-cell{font-size:11px;padding:8px 0;letter-spacing:-0.3px}
-  .header-cell.weekend{color:#e11d48}
-
-  /* 节次：只显示开始时间 */
-  .period-cell{padding:5px 1px;gap:0}
-  .period-cell b{font-size:0;line-height:0}
-  .period-cell .p-label{display:none}
-  .period-cell .p-time{
-    display:inline;
-    font-size:10.5px;
-    font-weight:900;
-    color:var(--text);
-    letter-spacing:-0.3px;
-    line-height:1.2;
-  }
-  .period-cell span{display:none}
-
-  /* 单元格 */
-  .cell{min-height:82px;padding:2px 1px;gap:2px}
-  .course{padding:4px 3px;border-radius:4px;border-left-width:2.5px;font-size:10px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere}
-  .course-name{font-size:10px;margin-bottom:1px;line-height:1.15;letter-spacing:0;word-break:break-word;overflow-wrap:anywhere}
-  .course-room{font-size:8px;line-height:1.1;word-break:break-word;opacity:.85}
-  .course-weeks{display:none}
-  .empty{font-size:9px;margin-top:24px}
-  .scroll-hint{display:none !important}
+  .grid-day .day-name{font-size:11px}
+  .grid-day .day-date{font-size:9px}
+  .grid-period .p-num{font-size:11px}
+  .grid-period .p-time{font-size:8px}
+  .grid-course-wrap{padding:1px}
+  .course{padding:4px 4px;border-radius:5px;border-left-width:2.5px;font-size:10px}
+  .course-name{font-size:10px;margin-bottom:1px}
+  .course-room{font-size:8px}
 }
 </style>
 </head>
@@ -193,6 +277,7 @@ body{
         <p id="metaInfo">计应（专）2607专 · 2026-2027-1</p>
       </div>
     </div>
+    <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
   </header>
 
   <section id="view-today" class="view">
@@ -210,7 +295,6 @@ body{
       <button class="nav-btn" id="nextWeek">→</button>
       <button class="primary-btn" id="todayBtn">本周</button>
     </div>
-    <div class="scroll-hint">← 左右滑动查看完整一周 →</div>
     <div class="schedule-scroll">
       <div class="grid" id="grid"></div>
     </div>
@@ -232,9 +316,7 @@ body{
 
     <div class="settings-card">
       <h3>🔔 课表提醒</h3>
-      <div class="tip" style="margin-bottom:10px">
-        推荐导出 <code>.ics</code> 到手机<b>系统日历</b>，到点锁屏也会响，比 App 通知可靠。
-      </div>
+      <div class="tip" style="margin-bottom:10px">推荐导出 <code>.ics</code> 到手机<b>系统日历</b>，到点锁屏也会响。</div>
       <div class="btn-row">
         <button class="btn primary" id="exportICS">导出到系统日历</button>
       </div>
@@ -252,7 +334,6 @@ body{
         <label>页面内通知</label>
         <button class="btn" id="enableNotif">开启</button>
       </div>
-      <div class="tip">桌面浏览器推荐；手机端系统限制较多，只作补充。</div>
     </div>
 
     <div class="settings-card">
@@ -269,11 +350,7 @@ body{
 
     <div class="settings-card">
       <h3>ℹ️ 关于</h3>
-      <div class="tip">
-        燕理课表 Pro · 本地 PWA<br>
-        数据保存在本机浏览器，不上传服务器。<br>
-        添加到主屏幕即可当 App 使用。
-      </div>
+      <div class="tip">燕理课表 Pro · 本地 PWA<br>数据保存在本机浏览器，不上传服务器。</div>
     </div>
 
     <button class="btn primary" id="saveSettings" style="width:100%;padding:14px;font-size:14px">保存设置</button>
@@ -298,6 +375,34 @@ body{
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============ 12 小节时间表 ============ */
+const SECTIONS = [
+  null,
+  { num:1,  time:'08:20-09:05' },
+  { num:2,  time:'09:10-09:55' },
+  { num:3,  time:'10:15-11:00' },
+  { num:4,  time:'11:05-11:50' },
+  { num:5,  time:'13:30-14:15' },
+  { num:6,  time:'14:20-15:05' },
+  { num:7,  time:'15:25-16:10' },
+  { num:8,  time:'16:15-17:00' },
+  { num:9,  time:'18:00-18:45' },
+  { num:10, time:'18:50-19:35' },
+  { num:11, time:'19:50-20:35' },
+  { num:12, time:'20:40-21:25' },
+];
+
+/* 大节 → 起始时间（用于 .ics 导出）*/
+const PERIOD_TIMES = [
+  '',
+  { label:'第一大节', clock:['08:20','09:55'] },
+  { label:'第二大节', clock:['10:15','12:05'] },
+  { label:'第三大节', clock:['13:30','15:05'] },
+  { label:'第四大节', clock:['15:25','17:00'] },
+  { label:'第五大节', clock:['18:00','19:35'] },
+  { label:'第六大节', clock:['19:50','21:25'] },
+];
+
 /* ============ 预置课表 ============ */
 const DEFAULT_COURSES = [
   { day:1, period:1, name:'C语言程序设计', credit:'64', type:'必修', weeks:[7,8,9,10,11,12,13,14,15,16,17,18], room:'C407' },
@@ -331,16 +436,8 @@ const DEFAULT_COURSES = [
   { day:6, period:3, name:'大学生心理健康教育', credit:'32', type:'必修', weeks:[6], room:'综301' },
 ];
 
-const DAY_NAMES = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期天'];
-const PERIOD_TIMES = [
-  '',
-  { label:'第一大节', short:'8:20', time:'01-02节<br>08:20-09:55', clock:['08:20','09:55'] },
-  { label:'第二大节', short:'10:15', time:'03-04节<br>10:15-12:05', clock:['10:15','12:05'] },
-  { label:'第三大节', short:'13:30', time:'05-06节<br>13:30-15:05', clock:['13:30','15:05'] },
-  { label:'第四大节', short:'15:25', time:'07-08节<br>15:25-17:00', clock:['15:25','17:00'] },
-  { label:'第五大节', short:'18:00', time:'09-10节<br>18:00-19:35', clock:['18:00','19:35'] },
-  { label:'第六大节', short:'19:50', time:'11-12节<br>19:50-21:25', clock:['19:50','21:25'] },
-];
+const DAY_NAMES = ['','周一','周二','周三','周四','周五','周六','周日'];
+const DAY_FULL = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期天'];
 
 const STORAGE_KEY = 'courseTablePro_v2';
 const DEFAULT_STATE = {
@@ -361,6 +458,29 @@ function loadState(){
 }
 function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
 
+/* ============ 主题 ============ */
+function applyTheme(theme){
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem('theme', theme);
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+  // 重新渲染课程（颜色需按主题调整）
+  if (document.getElementById('grid')) renderGrid();
+  if (document.getElementById('view-today').classList.contains('active')) renderToday();
+}
+function initTheme(){
+  const saved = localStorage.getItem('theme');
+  if (saved) { applyTheme(saved); return; }
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  applyTheme(mq.matches ? 'dark' : 'light');
+  mq.addEventListener('change', e => {
+    if (!localStorage.getItem('theme')) applyTheme(e.matches ? 'dark' : 'light');
+  });
+}
+document.getElementById('themeToggle').onclick = () => {
+  const cur = document.documentElement.dataset.theme;
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+};
+
 /* ============ 工具 ============ */
 function toast(msg){
   const el = document.getElementById('toast');
@@ -372,15 +492,32 @@ function fmtDate(d){ return `${d.getMonth()+1}月${d.getDate()}日`; }
 function todayDayIndex(){ const d = new Date().getDay(); return d === 0 ? 7 : d; }
 
 const colorCache = {};
-function getColor(name){
-  if(colorCache[name]) return colorCache[name];
+function getHue(name){
+  if(colorCache[name] !== undefined) return colorCache[name];
   let h = 0;
   for(let i=0;i<name.length;i++) h = name.charCodeAt(i) + ((h<<5)-h);
   const hue = Math.abs(h) % 360;
-  const c = { bg:`hsl(${hue},85%,95%)`, border:`hsl(${hue},75%,60%)`, text:`hsl(${hue},65%,28%)` };
-  colorCache[name] = c;
-  return c;
+  colorCache[name] = hue;
+  return hue;
 }
+function courseColors(name){
+  const hue = getHue(name);
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  if(isDark){
+    return {
+      bg:`hsl(${hue}, 42%, 20%)`,
+      border:`hsl(${hue}, 55%, 42%)`,
+      text:`hsl(${hue}, 75%, 88%)`,
+    };
+  } else {
+    return {
+      bg:`hsl(${hue}, 75%, 96%)`,
+      border:`hsl(${hue}, 65%, 72%)`,
+      text:`hsl(${hue}, 55%, 30%)`,
+    };
+  }
+}
+
 function formatWeeks(weeks){
   if(!weeks || !weeks.length) return '';
   const ranges = [];
@@ -420,7 +557,7 @@ function renderToday(){
   const week = calcCurrentWeek();
   const [s, e] = weekDateRange(week);
   document.getElementById('todayTitle').textContent =
-    `${DAY_NAMES[day]} · 第 ${week} 周 · ${fmtDate(s)} - ${fmtDate(e)}`;
+    `${DAY_FULL[day]} · 第 ${week} 周 · ${fmtDate(s)} - ${fmtDate(e)}`;
 
   const list = state.courses
     .filter(c => c.day === day && c.weeks.includes(week))
@@ -432,7 +569,7 @@ function renderToday(){
     return;
   }
   container.innerHTML = list.map(c => {
-    const col = getColor(c.name);
+    const col = courseColors(c.name);
     const clock = PERIOD_TIMES[c.period].clock;
     return `<div class="today-course" style="border-left-color:${col.border}">
       <div class="time"><b>${clock[0]}</b>${clock[1]}</div>
@@ -448,49 +585,74 @@ function renderToday(){
 function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
+
+  const today = todayDayIndex();
+  const [weekStart] = weekDateRange(state.currentWeek);
+
+  // 表头角
   const corner = document.createElement('div');
-  corner.className = 'header-cell';
+  corner.className = 'grid-corner';
   corner.textContent = '节次';
   grid.appendChild(corner);
 
-  for(let d=1;d<=7;d++){
+  // 星期表头（带日期）
+  for(let d=1; d<=7; d++){
     const div = document.createElement('div');
-    div.className = 'header-cell' + (d>=6?' weekend':'');
-    div.textContent = DAY_NAMES[d];
+    div.className = 'grid-day' + (d>=6 ? ' weekend' : '') + (d === today ? ' today' : '');
+    const date = new Date(weekStart);
+    date.setDate(date.getDate() + d - 1);
+    div.innerHTML = `<div class="day-name">${DAY_NAMES[d]}</div><div class="day-date">${pad(date.getMonth()+1)}-${pad(date.getDate())}</div>`;
     grid.appendChild(div);
   }
-  for(let p=1;p<=6;p++){
+
+  // 12 小节：节次列 + 每天的空格子
+  for(let i=1; i<=12; i++){
+    // 节次
     const pc = document.createElement('div');
-    pc.className = 'period-cell';
-    pc.innerHTML = `<b>${PERIOD_TIMES[p].label}</b><span class="p-time">${PERIOD_TIMES[p].short}</span><span class="p-full">${PERIOD_TIMES[p].time}</span>`;
+    pc.className = 'grid-period' + (i % 2 === 0 ? ' major-end' : '');
+    pc.innerHTML = `<div class="p-num">${i}</div><div class="p-time">${SECTIONS[i].time}</div>`;
     grid.appendChild(pc);
-    for(let d=1;d<=7;d++){
+    // 每天空单元格
+    for(let d=1; d<=7; d++){
       const cell = document.createElement('div');
-      cell.className = 'cell';
-      const list = state.courses.filter(c =>
-        c.day === d && c.period === p && c.weeks.includes(state.currentWeek)
-      );
-      if(!list.length){
-        cell.innerHTML = '<div class="empty">—</div>';
-      } else {
-        list.forEach(c => {
-          const col = getColor(c.name);
-          const el = document.createElement('div');
-          el.className = 'course';
-          el.style.background = col.bg;
-          el.style.borderLeftColor = col.border;
-          el.style.color = col.text;
-          el.innerHTML = `
-            <div class="course-name">${c.name}</div>
-            <div class="course-room">📍 ${c.room}</div>
-            <div class="course-weeks">${formatWeeks(c.weeks)}</div>`;
-          cell.appendChild(el);
-        });
-      }
+      cell.className = 'grid-cell' + (i % 2 === 0 ? ' major-end' : '') + (d === today ? ' today-col' : '');
       grid.appendChild(cell);
     }
   }
+
+  // 课程卡片（大节占用 2 行）
+  for(let d=1; d<=7; d++){
+    for(let p=1; p<=6; p++){
+      const list = state.courses.filter(c =>
+        c.day === d && c.period === p && c.weeks.includes(state.currentWeek)
+      );
+      if(!list.length) continue;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'grid-course-wrap';
+      // 网格定位：列 = d+1，行 = 2*p（大节占 2 行）
+      wrap.style.gridColumn = (d + 1);
+      wrap.style.gridRow = (2 * p) + ' / span 2';
+
+      list.forEach(c => {
+        const col = courseColors(c.name);
+        const el = document.createElement('div');
+        el.className = 'course';
+        el.style.background = col.bg;
+        el.style.borderColor = col.border;
+        el.style.borderLeftColor = col.border;
+        el.style.color = col.text;
+        el.innerHTML = `
+          <div class="course-name">${c.name}</div>
+          <div class="course-room">📍 ${c.room}</div>`;
+        el.title = `${c.name}\n${c.room}\n${formatWeeks(c.weeks)}\n${c.type} · ${c.credit}学时`;
+        wrap.appendChild(el);
+      });
+      grid.appendChild(wrap);
+    }
+  }
 }
+
 function renderWeekSelect(){
   const sel = document.getElementById('weekSelect');
   sel.innerHTML = '';
@@ -538,7 +700,7 @@ function parseExcelData(data){
   for(let i=0;i<data.length;i++){
     if(data[i].some(c => String(c).includes('星期一'))){ headerIdx = i; break; }
   }
-  if(headerIdx === -1) throw new Error('未找到表头（星期一~星期天）');
+  if(headerIdx === -1) throw new Error('未找到表头');
   const dayCol = {};
   const header = data[headerIdx];
   const dayMap = {'星期一':1,'星期二':2,'星期三':3,'星期四':4,'星期五':5,'星期六':6,'星期天':7,'星期日':7};
@@ -745,11 +907,11 @@ function fillSettingsForm(){
   document.getElementById('totalWeeks').value = state.totalWeeks;
   document.getElementById('alarmMin').value = state.alarmMin;
 }
+initTheme();
 state.currentWeek = calcCurrentWeek();
 fillSettingsForm();
 refresh();
 
-// 手机端默认进"今日"，电脑端默认进"周课表"
 if(window.innerWidth <= 768){
   switchView('today');
 } else {
