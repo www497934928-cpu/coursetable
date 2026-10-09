@@ -130,30 +130,31 @@ body{
 .grid-cell{background:var(--card)}
 
 .grid-course-wrap{
-  padding:2px;
-  display:flex;flex-direction:column;gap:2px;
+  padding:3px;
+  display:flex;flex-direction:column;gap:3px;
   z-index:2;
 }
 .grid-course-wrap > *{pointer-events:auto}
 
+/* ============ 课程卡片：桌面端大字号 ============ */
 .course{
   flex:1;min-height:0;
-  padding:5px 6px;
-  border-radius:8px;
+  padding:10px 12px;
+  border-radius:10px;
   border:1.5px solid;
-  border-left-width:3px;
-  font-size:9.5px;
-  line-height:1.2;
+  border-left-width:4px;
+  font-size:13px;
+  line-height:1.3;
   font-weight:700;
   overflow:hidden;
   display:flex;flex-direction:column;justify-content:center;
   cursor:pointer;
   transition:transform .12s,box-shadow .15s;
-  box-shadow:0 2px 6px rgba(15,23,42,.06);
+  box-shadow:0 2px 8px rgba(15,23,42,.06);
 }
 .course:active{transform:scale(.97)}
-.course-name{font-weight:900;font-size:10px;margin-bottom:2px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere}
-.course-room{font-size:8.5px;font-weight:700;line-height:1.15;opacity:.85;word-break:break-word;overflow-wrap:anywhere}
+.course-name{font-weight:900;font-size:15px;margin-bottom:5px;line-height:1.3;word-break:break-word;overflow-wrap:anywhere}
+.course-room{font-size:12px;font-weight:700;line-height:1.3;opacity:.9;word-break:break-word;overflow-wrap:anywhere}
 .course-weeks{display:none}
 
 /* ============ 课程详情弹窗 ============ */
@@ -265,6 +266,10 @@ body{
   .field-row{flex-direction:column;align-items:flex-start;gap:6px}
   .field-row input,.field-row select{width:100%}
   .btn-row .btn{flex:1;min-width:120px}
+  /* ★ 手机端课程回到小字号 */
+  .course{padding:5px 6px;border-radius:8px;border-left-width:3px;font-size:9.5px}
+  .course-name{font-size:10px;margin-bottom:2px}
+  .course-room{font-size:8.5px}
 }
 
 /* ============ iQOO 12 / 窄屏 ============ */
@@ -407,7 +412,7 @@ body{
 
 <script>
 /* ================================================================
-   完整 JavaScript 从这里开始
+   JavaScript 完整代码
    ================================================================ */
 
 /* ============ 12 小节时间表 ============ */
@@ -542,6 +547,7 @@ function getHue(name){
   hueCache[name] = hue;
   return hue;
 }
+/* ★ 浅色配色加深、暗色保持 */
 function courseColors(name){
   const hue = getHue(name);
   const isDark = document.documentElement.dataset.theme === 'dark';
@@ -553,9 +559,9 @@ function courseColors(name){
     };
   } else {
     return {
-      bg:`hsl(${hue}, 78%, 96%)`,
-      border:`hsl(${hue}, 62%, 70%)`,
-      text:`hsl(${hue}, 60%, 28%)`,
+      bg:`hsl(${hue}, 72%, 88%)`,
+      border:`hsl(${hue}, 68%, 55%)`,
+      text:`hsl(${hue}, 72%, 22%)`,
     };
   }
 }
@@ -1043,10 +1049,6 @@ if('serviceWorker' in navigator && location.protocol !== 'file:'){
 if('Notification' in window && Notification.permission === 'granted'){
   startNotifLoop();
 }
-
-/* ================================================================
-   JavaScript 结束
-   ================================================================ */
 </script>
 </body>
 </html>
