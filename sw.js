@@ -1,4 +1,4 @@
-const CACHE = 'coursetable-v13';
+const CACHE = 'courseTablePro_v2_jiying2607';
 const ASSETS = [
   './',
   './index.html',

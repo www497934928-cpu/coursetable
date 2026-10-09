@@ -2,7 +2,7 @@
   "name": "燕理课表 Pro",
   "short_name": "课表",
   "description": "个人课程表，支持导入 Excel、周次切换、系统日历提醒",
-  "start_url": "./index.html",
+  "start_url": "./jiying.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
