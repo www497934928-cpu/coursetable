@@ -63,6 +63,7 @@ body{
 .period-cell{background:#f8fafc;padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
 .period-cell b{font-size:13.5px;color:var(--text);font-weight:900}
 .period-cell span{font-size:10px;color:var(--text-2);font-weight:700;line-height:1.5}
+.p-time{display:none}  /* 手机端才显示开始时间 */
 .cell{background:#fff;padding:5px;min-height:118px;display:flex;flex-direction:column;gap:5px}
 .empty{color:#cbd5e1;font-size:12px;font-weight:700;text-align:center;margin-top:44px}
 .course{padding:7px 8px;border-radius:9px;border-left:4px solid;font-size:12px;line-height:1.4;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.04)}
@@ -143,25 +144,40 @@ body{
   .btn-row .btn{flex:1;min-width:120px}
 }
 
-/* ============ iQOO 12 / 窄屏手机：整周铺满，不横滑 ============ */
-/* ★ 这一段必须在 768px 后面，否则会被覆盖 ★ */
+/* ============ iQOO 12 / 窄屏手机：7 天全显示 + 节次显示时间 ============ */
 @media (max-width:480px){
   .schedule-scroll{overflow-x:hidden}
   .grid{
-    grid-template-columns:40px repeat(7,minmax(0,1fr));
+    grid-template-columns:44px repeat(7,minmax(0,1fr));
     min-width:0;
     width:100%;
   }
-  .header-cell{font-size:10px;padding:7px 0;letter-spacing:-0.3px}
-  .period-cell{padding:4px 2px;gap:2px}
-  .period-cell b{font-size:9px;line-height:1.2;letter-spacing:-0.3px;text-align:center}
+
+  /* 表头 */
+  .header-cell{font-size:11px;padding:8px 0;letter-spacing:-0.3px}
+  .header-cell.weekend{color:#e11d48}
+
+  /* 节次：只显示开始时间 */
+  .period-cell{padding:5px 1px;gap:0}
+  .period-cell b{font-size:0;line-height:0}
+  .period-cell .p-label{display:none}
+  .period-cell .p-time{
+    display:inline;
+    font-size:10.5px;
+    font-weight:900;
+    color:var(--text);
+    letter-spacing:-0.3px;
+    line-height:1.2;
+  }
   .period-cell span{display:none}
-  .cell{min-height:68px;padding:2px 1px;gap:2px}
-  .course{padding:3px 3px;border-radius:4px;border-left-width:2px;font-size:8.5px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere}
-  .course-name{font-size:8.5px;margin-bottom:1px;line-height:1.2;letter-spacing:0;word-break:break-word;overflow-wrap:anywhere}
-  .course-room{font-size:7.5px;line-height:1.1;word-break:break-word;opacity:.85}
+
+  /* 单元格 */
+  .cell{min-height:82px;padding:2px 1px;gap:2px}
+  .course{padding:4px 3px;border-radius:4px;border-left-width:2.5px;font-size:10px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere}
+  .course-name{font-size:10px;margin-bottom:1px;line-height:1.15;letter-spacing:0;word-break:break-word;overflow-wrap:anywhere}
+  .course-room{font-size:8px;line-height:1.1;word-break:break-word;opacity:.85}
   .course-weeks{display:none}
-  .empty{font-size:9px;margin-top:22px}
+  .empty{font-size:9px;margin-top:24px}
   .scroll-hint{display:none !important}
 }
 </style>
@@ -318,12 +334,12 @@ const DEFAULT_COURSES = [
 const DAY_NAMES = ['','星期一','星期二','星期三','星期四','星期五','星期六','星期天'];
 const PERIOD_TIMES = [
   '',
-  { label:'第一大节', time:'01-02节<br>08:20-09:55', clock:['08:20','09:55'] },
-  { label:'第二大节', time:'03-04节<br>10:15-12:05', clock:['10:15','12:05'] },
-  { label:'第三大节', time:'05-06节<br>13:30-15:05', clock:['13:30','15:05'] },
-  { label:'第四大节', time:'07-08节<br>15:25-17:00', clock:['15:25','17:00'] },
-  { label:'第五大节', time:'09-10节<br>18:00-19:35', clock:['18:00','19:35'] },
-  { label:'第六大节', time:'11-12节<br>19:50-21:25', clock:['19:50','21:25'] },
+  { label:'第一大节', short:'8:20', time:'01-02节<br>08:20-09:55', clock:['08:20','09:55'] },
+  { label:'第二大节', short:'10:15', time:'03-04节<br>10:15-12:05', clock:['10:15','12:05'] },
+  { label:'第三大节', short:'13:30', time:'05-06节<br>13:30-15:05', clock:['13:30','15:05'] },
+  { label:'第四大节', short:'15:25', time:'07-08节<br>15:25-17:00', clock:['15:25','17:00'] },
+  { label:'第五大节', short:'18:00', time:'09-10节<br>18:00-19:35', clock:['18:00','19:35'] },
+  { label:'第六大节', short:'19:50', time:'11-12节<br>19:50-21:25', clock:['19:50','21:25'] },
 ];
 
 const STORAGE_KEY = 'courseTablePro_v2';
@@ -446,7 +462,7 @@ function renderGrid(){
   for(let p=1;p<=6;p++){
     const pc = document.createElement('div');
     pc.className = 'period-cell';
-    pc.innerHTML = `<b>${PERIOD_TIMES[p].label}</b><span>${PERIOD_TIMES[p].time}</span>`;
+    pc.innerHTML = `<b>${PERIOD_TIMES[p].label}</b><span class="p-time">${PERIOD_TIMES[p].short}</span><span class="p-full">${PERIOD_TIMES[p].time}</span>`;
     grid.appendChild(pc);
     for(let d=1;d<=7;d++){
       const cell = document.createElement('div');
