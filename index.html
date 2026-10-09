@@ -92,9 +92,9 @@ body{
 .grid{
   display:grid;
   grid-template-columns:52px repeat(7,minmax(0,1fr));
-  grid-template-rows:48px repeat(12, 50px);   /* 每小格 50px */
+  grid-template-rows:48px repeat(12, 50px);
   gap:1px;
-  background:var(--grid-line);               /* 网格线颜色 */
+  background:var(--grid-line);
   border-radius:14px;
   overflow:hidden;
 }
@@ -143,22 +143,22 @@ body{
 /* 课程卡片 */
 .course{
   flex:1;min-height:0;
-  padding:8px 9px;
-  border-radius:9px;
+  padding:5px 6px;
+  border-radius:8px;
   border:1.5px solid;
-  border-left-width:4px;
-  font-size:11px;
-  line-height:1.25;
+  border-left-width:3px;
+  font-size:9.5px;
+  line-height:1.2;
   font-weight:700;
   overflow:hidden;
   display:flex;flex-direction:column;justify-content:center;
   cursor:pointer;
   transition:transform .12s,box-shadow .15s;
-  box-shadow:0 2px 8px rgba(15,23,42,.08);
+  box-shadow:0 2px 6px rgba(15,23,42,.06);
 }
 .course:active{transform:scale(.97)}
-.course-name{font-weight:900;font-size:12px;margin-bottom:4px;line-height:1.25;word-break:break-word;overflow-wrap:anywhere}
-.course-room{font-size:9.5px;font-weight:700;line-height:1.2;opacity:.88;word-break:break-word;overflow-wrap:anywhere}
+.course-name{font-weight:900;font-size:10px;margin-bottom:2px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere}
+.course-room{font-size:8.5px;font-weight:700;line-height:1.15;opacity:.85;word-break:break-word;overflow-wrap:anywhere}
 .course-weeks{display:none}
 
 /* ============ 课程详情弹窗 ============ */
@@ -283,9 +283,9 @@ body{
   .grid-period .p-num{font-size:12px}
   .grid-period .p-time{font-size:7.5px;letter-spacing:-0.2px}
   .grid-course-wrap{padding:2px}
-  .course{padding:6px 6px;border-radius:7px;border-left-width:3.5px;font-size:10.5px}
-  .course-name{font-size:10.5px;margin-bottom:3px}
-  .course-room{font-size:9px}
+  .course{padding:4px 5px;border-radius:6px;border-left-width:3px;font-size:9.5px}
+  .course-name{font-size:10px;margin-bottom:2px}
+  .course-room{font-size:8.5px}
 }
 </style>
 </head>
@@ -397,7 +397,6 @@ body{
 
 <div class="toast" id="toast"></div>
 
-<!-- ============ 课程详情弹窗 ============ -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-card" id="modalCard">
     <div class="modal-header">
@@ -429,7 +428,6 @@ const SECTIONS = [
   { num:12, start:'20:40', end:'21:25' },
 ];
 
-/* 大节时间（用于 .ics 导出）*/
 const PERIOD_TIMES = [
   '',
   { label:'第一大节', clock:['08:20','09:55'] },
@@ -539,7 +537,6 @@ function courseColors(name){
   const hue = getHue(name);
   const isDark = document.documentElement.dataset.theme === 'dark';
   if(isDark){
-    /* 暗色：底色更饱和，边框更亮，文字接近白 */
     return {
       bg:`hsl(${hue}, 48%, 26%)`,
       border:`hsl(${hue}, 70%, 58%)`,
@@ -672,7 +669,6 @@ function renderToday(){
     </div>`;
   }).join('');
 
-  /* 绑点击事件 */
   container.querySelectorAll('.today-course').forEach(el => {
     el.onclick = () => openCourseModal(list[+el.dataset.idx]);
   });
@@ -686,17 +682,21 @@ function renderGrid(){
   const today = todayDayIndex();
   const [weekStart] = weekDateRange(state.currentWeek);
 
-  /* 角 */
+  /* 角（显式定位） */
   const corner = document.createElement('div');
   corner.className = 'grid-corner';
   corner.textContent = '节次';
+  corner.style.gridColumn = 1;
+  corner.style.gridRow = 1;
   grid.appendChild(corner);
 
-  /* 星期表头：当天显示"今天" */
+  /* 星期表头（显式定位，当天显示"今天"） */
   for(let d=1; d<=7; d++){
     const div = document.createElement('div');
     const isToday = (d === today);
     div.className = 'grid-day' + (d>=6 ? ' weekend' : '') + (isToday ? ' today' : '');
+    div.style.gridColumn = d + 1;
+    div.style.gridRow = 1;
     const date = new Date(weekStart);
     date.setDate(date.getDate() + d - 1);
     const dayName = isToday ? '今天' : DAY_NAMES[d];
@@ -704,20 +704,25 @@ function renderGrid(){
     grid.appendChild(div);
   }
 
-  /* 12 行：节次列 + 空格子 */
+  /* 12 行：节次列 + 空格子，全部显式定位 */
   for(let i=1; i<=12; i++){
     const pc = document.createElement('div');
     pc.className = 'grid-period';
+    pc.style.gridColumn = 1;
+    pc.style.gridRow = i + 1;
     pc.innerHTML = `<div class="p-num">${i}</div><div class="p-time">${SECTIONS[i].start}</div><div class="p-time">${SECTIONS[i].end}</div>`;
     grid.appendChild(pc);
+
     for(let d=1; d<=7; d++){
       const cell = document.createElement('div');
       cell.className = 'grid-cell';
+      cell.style.gridColumn = d + 1;
+      cell.style.gridRow = i + 1;
       grid.appendChild(cell);
     }
   }
 
-  /* 课程卡片：跨 2 行，全覆盖 */
+  /* 课程卡片：跨 2 行 */
   for(let d=1; d<=7; d++){
     for(let p=1; p<=6; p++){
       const list = state.courses.filter(c =>
